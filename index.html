@@ -1,0 +1,1439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Blog Generator</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            --primary: #4361ee;
+            --secondary: #3f37c9;
+            --accent: #4cc9f0;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --success: #4bb543;
+            --danger: #dc3545;
+            --warning: #ffc107;
+        }
+
+        body {
+            background-color: #f5f7fb;
+            color: var(--dark);
+            line-height: 1.6;
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .logo i {
+            margin-right: 10px;
+            color: var(--accent);
+        }
+
+        nav ul {
+            display: flex;
+            list-style: none;
+        }
+
+        nav ul li {
+            margin-left: 1.5rem;
+        }
+
+        nav ul li a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+            cursor: pointer;
+            padding: 0.5rem 0;
+            border-bottom: 2px solid transparent;
+        }
+
+        nav ul li a:hover, nav ul li a.active {
+            color: var(--accent);
+            border-bottom: 2px solid var(--accent);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1.5rem;
+            display: grid;
+            grid-template-columns: 3fr 1fr;
+            gap: 2rem;
+        }
+
+        .prompt-section {
+            background: white;
+            border-radius: 10px;
+            padding: 2rem;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            margin-bottom: 2rem;
+        }
+
+        .prompt-section h2 {
+            color: var(--primary);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .prompt-section h2 i {
+            margin-right: 10px;
+        }
+
+        .prompt-form {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .prompt-input {
+            padding: 1rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-bottom: 1rem;
+            font-size: 1rem;
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        .prompt-input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .generate-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 5px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 200px;
+        }
+
+        .generate-btn:hover {
+            background: var(--secondary);
+        }
+
+        .generate-btn i {
+            margin-right: 8px;
+        }
+
+        .blog-post {
+            background: white;
+            border-radius: 10px;
+            padding: 2rem;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            margin-bottom: 2rem;
+        }
+
+        .blog-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 1rem;
+        }
+
+        .blog-title {
+            color: var(--primary);
+            font-size: 1.8rem;
+        }
+
+        .blog-meta {
+            display: flex;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .blog-meta span {
+            margin-right: 1rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .blog-meta i {
+            margin-right: 5px;
+        }
+
+        .blog-content {
+            margin-bottom: 1.5rem;
+        }
+
+        .blog-content p {
+            margin-bottom: 1rem;
+        }
+
+        .blog-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid #eee;
+            padding-top: 1rem;
+        }
+
+        .action-buttons {
+            display: flex;
+        }
+
+        .action-btn {
+            background: none;
+            border: none;
+            color: #666;
+            cursor: pointer;
+            margin-right: 1.5rem;
+            display: flex;
+            align-items: center;
+            font-size: 0.9rem;
+            transition: color 0.3s;
+        }
+
+        .action-btn:hover {
+            color: var(--primary);
+        }
+
+        .action-btn i {
+            margin-right: 5px;
+        }
+
+        .liked {
+            color: var(--danger);
+        }
+
+        .comments-section {
+            margin-top: 2rem;
+        }
+
+        .comment-form {
+            display: flex;
+            margin-bottom: 1.5rem;
+        }
+
+        .comment-input {
+            flex: 1;
+            padding: 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 5px 0 0 5px;
+            font-size: 1rem;
+        }
+
+        .comment-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0 1.5rem;
+            border-radius: 0 5px 5px 0;
+            cursor: pointer;
+        }
+
+        .comment-list {
+            list-style: none;
+        }
+
+        .comment-item {
+            padding: 1rem;
+            border-bottom: 1px solid #eee;
+        }
+
+        .comment-author {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--primary);
+        }
+
+        .sidebar {
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            height: fit-content;
+        }
+
+        .sidebar h3 {
+            color: var(--primary);
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #eee;
+        }
+
+        .popular-posts {
+            list-style: none;
+        }
+
+        .popular-post {
+            display: flex;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .popular-post:hover {
+            transform: translateX(5px);
+        }
+
+        .popular-post:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
+        .popular-post img {
+            width: 80px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 5px;
+            margin-right: 1rem;
+        }
+
+        .popular-post-content h4 {
+            font-size: 0.9rem;
+            margin-bottom: 0.3rem;
+        }
+
+        .popular-post-content span {
+            font-size: 0.8rem;
+            color: #666;
+        }
+
+        .tags {
+            display: flex;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+        }
+
+        .tag {
+            background: #f0f2f5;
+            color: #666;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .tag:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        footer {
+            background: var(--dark);
+            color: white;
+            text-align: center;
+            padding: 2rem;
+            margin-top: 3rem;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .social-links {
+            display: flex;
+            justify-content: center;
+            margin: 1.5rem 0;
+        }
+
+        .social-links a {
+            color: white;
+            margin: 0 1rem;
+            font-size: 1.5rem;
+            transition: color 0.3s;
+        }
+
+        .social-links a:hover {
+            color: var(--accent);
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .spinner {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid var(--primary);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* New styles for enhanced features */
+        .page-section {
+            display: none;
+        }
+
+        .active-section {
+            display: block;
+        }
+
+        .trending-posts, .category-posts {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .post-card {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s;
+            cursor: pointer;
+        }
+
+        .post-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .post-card img {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+        }
+
+        .post-card-content {
+            padding: 1.5rem;
+        }
+
+        .post-card h3 {
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+            font-size: 1.2rem;
+        }
+
+        .post-card p {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .post-card-meta {
+            display: flex;
+            justify-content: space-between;
+            color: #888;
+            font-size: 0.8rem;
+        }
+
+        .about-content, .contact-content {
+            background: white;
+            border-radius: 10px;
+            padding: 2rem;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            margin-bottom: 2rem;
+        }
+
+        .about-content h2, .contact-content h2 {
+            color: var(--primary);
+            margin-bottom: 1rem;
+            border-bottom: 2px solid var(--accent);
+            padding-bottom: 0.5rem;
+        }
+
+        .contact-form {
+            display: flex;
+            flex-direction: column;
+            margin-top: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .submit-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 5px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+            width: 150px;
+        }
+
+        .submit-btn:hover {
+            background: var(--secondary);
+        }
+
+        .category-filter {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .category-btn {
+            background: #f0f2f5;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .category-btn.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+            
+            .header-content {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            nav ul {
+                margin-top: 1rem;
+                justify-content: center;
+            }
+            
+            nav ul li {
+                margin: 0 0.5rem;
+            }
+            
+            .blog-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .blog-meta {
+                margin-top: 0.5rem;
+            }
+            
+            .trending-posts, .category-posts {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <div class="logo" id="homeLink">
+                <i class="fas fa-brain"></i>
+                <span>AI Blog Generator</span>
+            </div>
+            <nav>
+                <ul>
+                    <li><a id="homeNav" class="active">Home</a></li>
+                    <li><a id="trendingNav">Trending</a></li>
+                    <li><a id="categoriesNav">Categories</a></li>
+                    <li><a id="aboutNav">About</a></li>
+                    <li><a id="contactNav">Contact</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Home Section -->
+        <main class="page-section active-section" id="homeSection">
+            <section class="prompt-section">
+                <h2><i class="fas fa-magic"></i> Generate Blog Content</h2>
+                <form class="prompt-form" id="promptForm">
+                    <textarea class="prompt-input" id="promptInput" placeholder="Enter your blog topic or description here..."></textarea>
+                    <button type="submit" class="generate-btn">
+                        <i class="fas fa-robot"></i> Generate Blog Post
+                    </button>
+                </form>
+            </section>
+
+            <div class="loading" id="loadingIndicator">
+                <div class="spinner"></div>
+                <p>AI is generating your blog content...</p>
+            </div>
+
+            <section class="blog-post" id="blogPost">
+                <div class="blog-header">
+                    <h2 class="blog-title" id="blogTitle">The Future of Artificial Intelligence in Everyday Life</h2>
+                    <div class="blog-meta">
+                        <span><i class="far fa-calendar"></i> <span id="blogDate">June 15, 2023</span></span>
+                        <span><i class="far fa-user"></i> AI Writer</span>
+                        <span><i class="far fa-clock"></i> 5 min read</span>
+                        <span><i class="far fa-eye"></i> <span id="blogViews">1,245</span> views</span>
+                    </div>
+                </div>
+                <div class="blog-content" id="blogContent">
+                    <p>Artificial Intelligence (AI) is no longer a concept confined to science fiction. It has seamlessly integrated into our daily lives, revolutionizing how we work, communicate, and even think. From virtual assistants like Siri and Alexa to recommendation algorithms on Netflix and Amazon, AI is becoming an indispensable part of modern existence.</p>
+                    
+                    <p>One of the most significant impacts of AI is in the healthcare sector. Machine learning algorithms can now analyze medical images with accuracy surpassing human experts, enabling early detection of diseases like cancer. Additionally, AI-powered wearable devices monitor vital signs in real-time, providing personalized health insights and alerts.</p>
+                    
+                    <p>In the realm of transportation, self-driving cars are poised to transform our cities. These autonomous vehicles use complex AI systems to navigate roads, reducing accidents caused by human error and potentially easing traffic congestion. Companies like Tesla and Waymo are at the forefront of this technological revolution.</p>
+                    
+                    <p>The future of AI holds even more promise. As natural language processing improves, we can expect more sophisticated interactions with AI systems. The integration of AI with Internet of Things (IoT) devices will create smart homes that anticipate our needs, adjusting temperature, lighting, and even ordering groceries before we realize we need them.</p>
+                    
+                    <p>However, this rapid advancement also raises important ethical questions. Issues of privacy, job displacement, and algorithmic bias need careful consideration as we move forward. The key will be developing AI that augments human capabilities rather than replacing them, creating a symbiotic relationship between humans and machines.</p>
+                </div>
+                <div class="blog-actions">
+                    <div class="action-buttons">
+                        <button class="action-btn" id="likeBtn">
+                            <i class="far fa-heart"></i> <span id="likeCount">24</span> Likes
+                        </button>
+                        <button class="action-btn">
+                            <i class="far fa-comment"></i> <span id="commentCount">8</span> Comments
+                        </button>
+                        <button class="action-btn" id="shareBtn">
+                            <i class="fas fa-share-alt"></i> Share
+                        </button>
+                    </div>
+                    <div class="social-share" id="socialShare" style="display: none;">
+                        <button class="action-btn"><i class="fab fa-facebook"></i></button>
+                        <button class="action-btn"><i class="fab fa-twitter"></i></button>
+                        <button class="action-btn"><i class="fab fa-linkedin"></i></button>
+                        <button class="action-btn"><i class="fas fa-link"></i></button>
+                    </div>
+                </div>
+                <div class="comments-section">
+                    <form class="comment-form" id="commentForm">
+                        <input type="text" class="comment-input" id="commentInput" placeholder="Add a comment...">
+                        <button type="submit" class="comment-btn">Post</button>
+                    </form>
+                    <ul class="comment-list" id="commentList">
+                        <li class="comment-item">
+                            <div class="comment-author">Sarah Johnson</div>
+                            <div class="comment-text">This is a fascinating perspective on AI! I especially agree with the point about ethical considerations.</div>
+                        </li>
+                        <li class="comment-item">
+                            <div class="comment-author">Mike Chen</div>
+                            <div class="comment-text">The healthcare applications of AI are truly revolutionary. Great article!</div>
+                        </li>
+                    </ul>
+                </div>
+            </section>
+        </main>
+
+        <!-- Trending Section -->
+        <main class="page-section" id="trendingSection">
+            <section class="prompt-section">
+                <h2><i class="fas fa-fire"></i> Trending Articles</h2>
+                <p>Discover the most popular articles based on real user engagement.</p>
+            </section>
+
+            <div class="trending-posts" id="trendingPosts">
+                <!-- Trending posts will be dynamically generated -->
+            </div>
+        </main>
+
+        <!-- Categories Section -->
+        <main class="page-section" id="categoriesSection">
+            <section class="prompt-section">
+                <h2><i class="fas fa-folder"></i> Browse by Category</h2>
+                <div class="category-filter">
+                    <button class="category-btn active" data-category="all">All</button>
+                    <button class="category-btn" data-category="technology">Technology</button>
+                    <button class="category-btn" data-category="travel">Travel</button>
+                    <button class="category-btn" data-category="health">Health</button>
+                    <button class="category-btn" data-category="food">Food</button>
+                    <button class="category-btn" data-category="science">Science</button>
+                </div>
+            </section>
+
+            <div class="category-posts" id="categoryPosts">
+                <!-- Category posts will be dynamically generated -->
+            </div>
+        </main>
+
+        <!-- About Section -->
+        <main class="page-section" id="aboutSection">
+            <section class="about-content">
+                <h2><i class="fas fa-info-circle"></i> About AI Blog Generator</h2>
+                <p>Welcome to AI Blog Generator, your premier destination for AI-generated content on a wide range of topics. Our platform leverages cutting-edge artificial intelligence to create informative, engaging, and high-quality blog posts tailored to your interests.</p>
+                
+                <h3>Our Mission</h3>
+                <p>Our mission is to democratize content creation by making it accessible to everyone. Whether you're a blogger, student, or curious mind, our AI-powered platform helps you generate well-researched and articulate content in seconds.</p>
+                
+                <h3>How It Works</h3>
+                <p>Simply enter a topic or description, and our advanced AI algorithms will generate a comprehensive blog post for you. You can then customize, share, or save the content for future reference.</p>
+                
+                <h3>Our Technology</h3>
+                <p>We utilize state-of-the-art natural language processing models that have been trained on vast datasets to ensure the content generated is not only coherent but also informative and engaging.</p>
+                
+                <h3>Join Our Community</h3>
+                <p>Become part of our growing community of content creators and AI enthusiasts. Share your generated posts, engage with other users, and explore the endless possibilities of AI-generated content.</p>
+            </section>
+        </main>
+
+        <!-- Contact Section -->
+        <main class="page-section" id="contactSection">
+            <section class="contact-content">
+                <h2><i class="fas fa-envelope"></i> Contact Us</h2>
+                <p>Have questions, suggestions, or feedback? We'd love to hear from you! Reach out to us using the form below or through our contact information.</p>
+                
+                <div class="contact-details">
+                    <h3>Get in Touch</h3>
+                    <p><i class="fas fa-map-marker-alt"></i> 123 AI Street, Tech City, TC 10101</p>
+                    <p><i class="fas fa-phone"></i> +1 (555) 123-4567</p>
+                    <p><i class="fas fa-envelope"></i> contact@aibloggenerator.com</p>
+                </div>
+                
+                <form class="contact-form" id="contactForm">
+                    <div class="form-group">
+                        <label for="name">Your Name</label>
+                        <input type="text" class="form-control" id="name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Your Email</label>
+                        <input type="email" class="form-control" id="email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="subject">Subject</label>
+                        <input type="text" class="form-control" id="subject" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="message">Your Message</label>
+                        <textarea class="form-control" id="message" rows="5" required></textarea>
+                    </div>
+                    <button type="submit" class="submit-btn">Send Message</button>
+                </form>
+            </section>
+        </main>
+
+        <aside class="sidebar">
+            <h3>Popular Posts</h3>
+            <ul class="popular-posts" id="popularPosts">
+                <!-- Popular posts will be dynamically generated -->
+            </ul>
+            
+            <h3>Tags</h3>
+            <div class="tags">
+                <span class="tag">Artificial Intelligence</span>
+                <span class="tag">Machine Learning</span>
+                <span class="tag">Technology</span>
+                <span class="tag">Future</span>
+                <span class="tag">Innovation</span>
+                <span class="tag">Data Science</span>
+                <span class="tag">Automation</span>
+                <span class="tag">Robotics</span>
+            </div>
+        </aside>
+    </div>
+
+    <footer>
+        <div class="footer-content">
+            <p>AI Blog Generator &copy; 2023. All rights reserved.</p>
+            <div class="social-links">
+                <a href="#"><i class="fab fa-facebook"></i></a>
+                <a href="#"><i class="fab fa-twitter"></i></a>
+                <a href="#"><i class="fab fa-instagram"></i></a>
+                <a href="#"><i class="fab fa-linkedin"></i></a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // DOM Elements
+        const promptForm = document.getElementById('promptForm');
+        const promptInput = document.getElementById('promptInput');
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        const blogPost = document.getElementById('blogPost');
+        const blogTitle = document.getElementById('blogTitle');
+        const blogContent = document.getElementById('blogContent');
+        const blogDate = document.getElementById('blogDate');
+        const blogViews = document.getElementById('blogViews');
+        const likeBtn = document.getElementById('likeBtn');
+        const likeCount = document.getElementById('likeCount');
+        const shareBtn = document.getElementById('shareBtn');
+        const socialShare = document.getElementById('socialShare');
+        const commentForm = document.getElementById('commentForm');
+        const commentInput = document.getElementById('commentInput');
+        const commentList = document.getElementById('commentList');
+        const commentCount = document.getElementById('commentCount');
+        
+        // Navigation Elements
+        const homeLink = document.getElementById('homeLink');
+        const homeNav = document.getElementById('homeNav');
+        const trendingNav = document.getElementById('trendingNav');
+        const categoriesNav = document.getElementById('categoriesNav');
+        const aboutNav = document.getElementById('aboutNav');
+        const contactNav = document.getElementById('contactNav');
+        
+        // Section Elements
+        const homeSection = document.getElementById('homeSection');
+        const trendingSection = document.getElementById('trendingSection');
+        const categoriesSection = document.getElementById('categoriesSection');
+        const aboutSection = document.getElementById('aboutSection');
+        const contactSection = document.getElementById('contactSection');
+        
+        // Content Containers
+        const popularPosts = document.getElementById('popularPosts');
+        const trendingPosts = document.getElementById('trendingPosts');
+        const categoryPosts = document.getElementById('categoryPosts');
+        const contactForm = document.getElementById('contactForm');
+
+        // Sample blog content for demonstration
+        const sampleBlogs = {
+            "technology": {
+                title: "The Future of Artificial Intelligence in Everyday Life",
+                content: [
+                    "Artificial Intelligence (AI) is no longer a concept confined to science fiction. It has seamlessly integrated into our daily lives, revolutionizing how we work, communicate, and even think. From virtual assistants like Siri and Alexa to recommendation algorithms on Netflix and Amazon, AI is becoming an indispensable part of modern existence.",
+                    "One of the most significant impacts of AI is in the healthcare sector. Machine learning algorithms can now analyze medical images with accuracy surpassing human experts, enabling early detection of diseases like cancer. Additionally, AI-powered wearable devices monitor vital signs in real-time, providing personalized health insights and alerts.",
+                    "In the realm of transportation, self-driving cars are poised to transform our cities. These autonomous vehicles use complex AI systems to navigate roads, reducing accidents caused by human error and potentially easing traffic congestion. Companies like Tesla and Waymo are at the forefront of this technological revolution.",
+                    "The future of AI holds even more promise. As natural language processing improves, we can expect more sophisticated interactions with AI systems. The integration of AI with Internet of Things (IoT) devices will create smart homes that anticipate our needs, adjusting temperature, lighting, and even ordering groceries before we realize we need them.",
+                    "However, this rapid advancement also raises important ethical questions. Issues of privacy, job displacement, and algorithmic bias need careful consideration as we move forward. The key will be developing AI that augments human capabilities rather than replacing them, creating a symbiotic relationship between humans and machines."
+                ],
+                category: "technology",
+                views: 1245,
+                likes: 24,
+                comments: 8,
+                date: "June 15, 2023"
+            },
+            "travel": {
+                title: "10 Hidden Gems for Your Next Adventure",
+                content: [
+                    "Traveling is about more than just visiting popular tourist destinations. It's about discovering hidden gems that offer unique experiences and authentic cultural immersion. In this article, we'll explore ten lesser-known destinations that should be on every adventurer's bucket list.",
+                    "First on our list is the Faroe Islands, located between Iceland and Norway. This archipelago boasts dramatic landscapes with towering cliffs, cascading waterfalls, and quaint villages. The hiking trails here offer breathtaking views that rival any of the more famous European destinations.",
+                    "For those interested in history, the ancient city of Petra in Jordan is a must-see. While not entirely unknown, many visitors only see the famous Treasury building. However, the vast archaeological site contains numerous tombs, temples, and caves that are equally impressive but less crowded.",
+                    "If you're a food lover, consider visiting Oaxaca, Mexico. While Cancun and Mexico City get most of the attention, Oaxaca offers an authentic culinary experience with its rich mole sauces, artisanal chocolate, and mezcal distilleries. The city's vibrant markets and colonial architecture add to its charm.",
+                    "For beach enthusiasts, the islands of Palawan in the Philippines offer some of the world's most pristine beaches and crystal-clear waters. While El Nido and Coron are gaining popularity, there are still many secluded spots where you can enjoy paradise without the crowds.",
+                    "These are just a few examples of the incredible hidden gems waiting to be discovered. The joy of travel often comes from venturing off the beaten path and creating your own unique experiences."
+                ],
+                category: "travel",
+                views: 892,
+                likes: 18,
+                comments: 5,
+                date: "May 22, 2023"
+            },
+            "health": {
+                title: "The Science of Sleep: Why Quality Rest Matters",
+                content: [
+                    "Sleep is not merely a period of rest; it's a complex physiological process essential for our physical and mental well-being. Despite its importance, many people sacrifice sleep in our fast-paced society, unaware of the profound consequences.",
+                    "During sleep, our bodies undergo crucial repair processes. Growth hormone is released, facilitating tissue repair and muscle growth. The brain also uses this time to clear out metabolic waste products that accumulate during waking hours, including beta-amyloid, a protein associated with Alzheimer's disease.",
+                    "Sleep plays a vital role in memory consolidation. Research shows that the brain reorganizes and reinforces memories during sleep, transferring them from short-term to long-term storage. This process is essential for learning new information and skills.",
+                    "Lack of quality sleep has been linked to numerous health issues, including obesity, diabetes, cardiovascular disease, and weakened immune function. Chronic sleep deprivation can also contribute to mental health problems like depression and anxiety.",
+                    "To improve sleep quality, experts recommend maintaining a consistent sleep schedule, creating a relaxing bedtime routine, and optimizing your sleep environment. This includes keeping the bedroom cool, dark, and quiet, and avoiding screens before bedtime as blue light can disrupt melatonin production.",
+                    "Prioritizing sleep is one of the most effective ways to enhance overall health and well-being. By understanding the science behind sleep, we can make informed choices that support this vital biological function."
+                ],
+                category: "health",
+                views: 1567,
+                likes: 32,
+                comments: 12,
+                date: "July 8, 2023"
+            },
+            "food": {
+                title: "The Rise of Plant-Based Cuisine: Beyond the Trend",
+                content: [
+                    "Plant-based eating has moved from a niche dietary choice to a mainstream culinary movement. What was once primarily associated with vegetarianism and veganism has now captured the attention of food enthusiasts worldwide, regardless of their primary dietary preferences.",
+                    "The innovation in plant-based alternatives has been remarkable. From burgers that 'bleed' beet juice to dairy-free cheeses that melt and stretch, food scientists and chefs are creating plant-based options that closely mimic their animal-based counterparts in taste and texture.",
+                    "Beyond imitation, there's a growing appreciation for vegetables as the star of the plate. Restaurants are showcasing creative preparations of seasonal produce, highlighting the natural flavors and textures of plants rather than trying to replicate meat dishes.",
+                    "The environmental impact of our food choices is also driving the plant-based movement. Studies consistently show that plant-based diets have a lower carbon footprint, use less water, and require less land than animal-based diets. This sustainability aspect appeals to environmentally conscious consumers.",
+                    "Looking forward, the plant-based movement shows no signs of slowing down. As technology advances and consumer demand grows, we can expect even more innovative and delicious plant-based options to emerge, making sustainable eating accessible and enjoyable for everyone."
+                ],
+                category: "food",
+                views: 723,
+                likes: 15,
+                comments: 6,
+                date: "August 3, 2023"
+            },
+            "science": {
+                title: "Quantum Computing: The Next Technological Revolution",
+                content: [
+                    "Quantum computing represents one of the most exciting frontiers in technology today. While classical computers use bits (0s and 1s) to process information, quantum computers use quantum bits or qubits, which can exist in multiple states simultaneously thanks to the principles of quantum mechanics.",
+                    "This ability to process information in parallel gives quantum computers potentially exponential speed advantages for certain types of problems. Tasks that would take classical computers thousands of years could potentially be solved by quantum computers in minutes or hours.",
+                    "One of the most promising applications of quantum computing is in drug discovery and materials science. Quantum computers could simulate molecular interactions at an atomic level, accelerating the development of new pharmaceuticals and materials with specific properties.",
+                    "Cryptography is another area where quantum computing will have a profound impact. While quantum computers could break many of today's encryption methods, they also enable new forms of quantum encryption that are theoretically unhackable.",
+                    "Despite the excitement, practical quantum computers that can solve real-world problems are still in development. Major challenges include maintaining qubit stability (quantum coherence) and scaling up systems to handle complex computations. However, progress is accelerating, with companies like IBM, Google, and startups making significant advances.",
+                    "The quantum revolution may still be years away from mainstream impact, but its potential to transform fields from medicine to finance makes it one of the most watched areas in technology today."
+                ],
+                category: "science",
+                views: 1983,
+                likes: 41,
+                comments: 15,
+                date: "September 12, 2023"
+            }
+        };
+
+        // Extended sample content for more posts
+        const extendedBlogs = {
+            "tech2": {
+                title: "How 5G Technology Will Transform Connectivity",
+                content: [
+                    "5G technology promises to revolutionize how we connect to the internet and each other. With speeds up to 100 times faster than 4G, 5G will enable innovations we've only dreamed of.",
+                    "The low latency of 5G networks will make real-time applications like remote surgery and autonomous vehicles possible. This near-instantaneous communication opens up new possibilities across industries.",
+                    "Beyond faster smartphones, 5G will power smart cities, with connected infrastructure improving everything from traffic management to energy distribution.",
+                    "However, the rollout of 5G faces challenges including infrastructure costs and coverage limitations in rural areas.",
+                    "As 5G continues to expand, we can expect a new wave of technological innovation that will reshape our digital landscape."
+                ],
+                category: "technology",
+                views: 1102,
+                likes: 22,
+                comments: 7,
+                date: "October 5, 2023"
+            },
+            "travel2": {
+                title: "Sustainable Tourism: Traveling Responsibly in the Modern Age",
+                content: [
+                    "As travel becomes more accessible, the importance of sustainable tourism has never been greater. Sustainable tourism focuses on minimizing negative impacts while maximizing benefits for local communities and environments.",
+                    "Eco-friendly accommodations are becoming increasingly popular, with hotels implementing energy-saving measures, waste reduction programs, and water conservation efforts.",
+                    "Responsible travelers can make a difference by choosing local guides, supporting community-based tourism initiatives, and respecting cultural traditions and natural habitats.",
+                    "Carbon offset programs allow travelers to compensate for their environmental impact by funding projects that reduce greenhouse gas emissions.",
+                    "By making conscious choices, we can ensure that future generations will be able to enjoy the world's incredible destinations just as we do today."
+                ],
+                category: "travel",
+                views: 934,
+                likes: 19,
+                comments: 8,
+                date: "September 18, 2023"
+            },
+            "health2": {
+                title: "Mindfulness Meditation: Benefits for Mental Health",
+                content: [
+                    "Mindfulness meditation has gained significant scientific backing for its mental health benefits. This practice involves focusing on the present moment without judgment.",
+                    "Research shows that regular mindfulness practice can reduce symptoms of anxiety and depression by helping individuals develop a different relationship with their thoughts and emotions.",
+                    "Mindfulness has been shown to improve attention and concentration, which can enhance productivity and performance in various aspects of life.",
+                    "Neuroscientific studies have found that mindfulness meditation can actually change brain structure, increasing gray matter in regions associated with emotional regulation and self-awareness.",
+                    "Incorporating just 10-15 minutes of mindfulness practice into your daily routine can lead to significant improvements in mental well-being over time."
+                ],
+                category: "health",
+                views: 1276,
+                likes: 28,
+                comments: 11,
+                date: "August 22, 2023"
+            },
+            "food2": {
+                title: "Fermented Foods: The Gut Health Revolution",
+                content: [
+                    "Fermented foods are experiencing a renaissance as we understand more about gut health and its connection to overall well-being. These foods are rich in probiotics that support a healthy microbiome.",
+                    "Traditional fermented foods like kimchi, sauerkraut, and kefir have been consumed for centuries, but modern science is now validating their health benefits.",
+                    "A diverse gut microbiome has been linked to improved digestion, stronger immunity, and even better mental health through the gut-brain axis.",
+                    "Making fermented foods at home is easier than you might think, requiring just a few simple ingredients and patience as the fermentation process works its magic.",
+                    "As research continues to uncover the importance of gut health, fermented foods are likely to remain a key component of healthy eating patterns."
+                ],
+                category: "food",
+                views: 845,
+                likes: 17,
+                comments: 5,
+                date: "July 30, 2023"
+            },
+            "science2": {
+                title: "CRISPR Gene Editing: Ethical Implications and Future Applications",
+                content: [
+                    "CRISPR technology has revolutionized genetic engineering, but it raises important ethical questions about the boundaries of human intervention in nature.",
+                    "The potential to correct genetic diseases before birth offers hope for eliminating hereditary conditions, but also sparks debate about 'designer babies' and genetic enhancement.",
+                    "In agriculture, CRISPR can create crops that are more resistant to pests and climate change, potentially addressing food security issues.",
+                    "The scientific community has established guidelines for responsible use of CRISPR technology, emphasizing the need for careful consideration of unintended consequences.",
+                    "As CRISPR continues to evolve, society will need to navigate complex ethical terrain to harness its benefits while minimizing risks."
+                ],
+                category: "science",
+                views: 1623,
+                likes: 35,
+                comments: 14,
+                date: "November 2, 2023"
+            }
+        };
+
+        // Combine all blogs
+        const allBlogs = { ...sampleBlogs, ...extendedBlogs };
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set current date for new blog posts
+            setCurrentDate();
+            
+            // Load popular posts in sidebar
+            loadPopularPosts();
+            
+            // Load trending posts
+            loadTrendingPosts();
+            
+            // Load category posts
+            loadCategoryPosts('all');
+            
+            // Set up event listeners
+            setupEventListeners();
+            
+            // Initialize like functionality
+            initializeLikes();
+            
+            // Add image error handling
+            addImageErrorHandling();
+        });
+
+        // Set current date for new blog posts
+        function setCurrentDate() {
+            const now = new Date();
+            const options = { year: 'numeric', month: 'long', day: 'numeric' };
+            blogDate.textContent = now.toLocaleDateString('en-US', options);
+        }
+
+        // Load popular posts in sidebar
+        function loadPopularPosts() {
+            popularPosts.innerHTML = '';
+            
+            // Get top 3 blogs by views
+            const popular = Object.values(allBlogs)
+                .sort((a, b) => b.views - a.views)
+                .slice(0, 3);
+            
+            popular.forEach(blog => {
+                const postElement = document.createElement('li');
+                postElement.className = 'popular-post';
+                postElement.innerHTML = `
+                    <img src="https://picsum.photos/80/60?random=${Math.random()}" alt="${blog.title}" onerror="this.src='https://via.placeholder.com/80x60/4361ee/ffffff?text=Blog+Image'">
+                    <div class="popular-post-content">
+                        <h4>${blog.title}</h4>
+                        <span>${blog.date} • ${blog.views} views</span>
+                    </div>
+                `;
+                
+                postElement.addEventListener('click', () => {
+                    displayBlogPost(blog);
+                    showSection(homeSection);
+                    updateNavigation('homeNav');
+                });
+                
+                popularPosts.appendChild(postElement);
+            });
+        }
+
+        // Load trending posts
+        function loadTrendingPosts() {
+            trendingPosts.innerHTML = '';
+            
+            // Get trending blogs (combination of views and recency)
+            const trending = Object.values(allBlogs)
+                .sort((a, b) => (b.views + b.likes * 10) - (a.views + a.likes * 10))
+                .slice(0, 6);
+            
+            trending.forEach(blog => {
+                const postElement = document.createElement('div');
+                postElement.className = 'post-card';
+                postElement.innerHTML = `
+                    <img src="https://picsum.photos/300/180?random=${Math.random()}" alt="${blog.title}" onerror="this.src='https://via.placeholder.com/300x180/4361ee/ffffff?text=Blog+Image'">
+                    <div class="post-card-content">
+                        <h3>${blog.title}</h3>
+                        <p>${blog.content[0].substring(0, 150)}...</p>
+                        <div class="post-card-meta">
+                            <span>${blog.date}</span>
+                            <span>${blog.views} views</span>
+                        </div>
+                    </div>
+                `;
+                
+                postElement.addEventListener('click', () => {
+                    displayBlogPost(blog);
+                    showSection(homeSection);
+                    updateNavigation('homeNav');
+                });
+                
+                trendingPosts.appendChild(postElement);
+            });
+        }
+
+        // Load category posts
+        function loadCategoryPosts(category) {
+            categoryPosts.innerHTML = '';
+            
+            let filteredBlogs = Object.values(allBlogs);
+            
+            if (category !== 'all') {
+                filteredBlogs = filteredBlogs.filter(blog => blog.category === category);
+            }
+            
+            filteredBlogs.forEach(blog => {
+                const postElement = document.createElement('div');
+                postElement.className = 'post-card';
+                postElement.innerHTML = `
+                    <img src="https://picsum.photos/300/180?random=${Math.random()}" alt="${blog.title}" onerror="this.src='https://via.placeholder.com/300x180/4361ee/ffffff?text=Blog+Image'">
+                    <div class="post-card-content">
+                        <h3>${blog.title}</h3>
+                        <p>${blog.content[0].substring(0, 150)}...</p>
+                        <div class="post-card-meta">
+                            <span>${blog.date}</span>
+                            <span>${blog.views} views</span>
+                        </div>
+                    </div>
+                `;
+                
+                postElement.addEventListener('click', () => {
+                    displayBlogPost(blog);
+                    showSection(homeSection);
+                    updateNavigation('homeNav');
+                });
+                
+                categoryPosts.appendChild(postElement);
+            });
+        }
+
+        // Display blog post
+        function displayBlogPost(blog) {
+            blogTitle.textContent = blog.title;
+            blogContent.innerHTML = blog.content.map(paragraph => `<p>${paragraph}</p>`).join('');
+            blogViews.textContent = blog.views.toLocaleString();
+            likeCount.textContent = blog.likes;
+            commentCount.textContent = blog.comments;
+            blogDate.textContent = blog.date;
+            
+            // Scroll to blog post
+            blogPost.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Set up event listeners
+        function setupEventListeners() {
+            // Navigation
+            homeLink.addEventListener('click', () => {
+                showSection(homeSection);
+                updateNavigation('homeNav');
+            });
+            
+            homeNav.addEventListener('click', () => {
+                showSection(homeSection);
+                updateNavigation('homeNav');
+            });
+            
+            trendingNav.addEventListener('click', () => {
+                showSection(trendingSection);
+                updateNavigation('trendingNav');
+            });
+            
+            categoriesNav.addEventListener('click', () => {
+                showSection(categoriesSection);
+                updateNavigation('categoriesNav');
+            });
+            
+            aboutNav.addEventListener('click', () => {
+                showSection(aboutSection);
+                updateNavigation('aboutNav');
+            });
+            
+            contactNav.addEventListener('click', () => {
+                showSection(contactSection);
+                updateNavigation('contactNav');
+            });
+            
+            // Blog generation form
+            promptForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                generateBlogPost();
+            });
+            
+            // Like button
+            likeBtn.addEventListener('click', toggleLike);
+            
+            // Share button
+            shareBtn.addEventListener('click', toggleShareButtons);
+            
+            // Comment form
+            commentForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                addComment();
+            });
+            
+            // Category filter buttons
+            document.querySelectorAll('.category-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    // Update active button
+                    document.querySelectorAll('.category-btn').forEach(btn => {
+                        btn.classList.remove('active');
+                    });
+                    this.classList.add('active');
+                    
+                    // Load posts for selected category
+                    const category = this.getAttribute('data-category');
+                    loadCategoryPosts(category);
+                });
+            });
+            
+            // Contact form
+            contactForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                submitContactForm();
+            });
+        }
+
+        // Show specific section and hide others
+        function showSection(sectionToShow) {
+            document.querySelectorAll('.page-section').forEach(section => {
+                section.classList.remove('active-section');
+            });
+            sectionToShow.classList.add('active-section');
+        }
+
+        // Update navigation active state
+        function updateNavigation(activeNavId) {
+            // Remove active class from all nav items
+            document.querySelectorAll('nav a').forEach(nav => {
+                nav.classList.remove('active');
+            });
+            
+            // Add active class to clicked nav item
+            document.getElementById(activeNavId).classList.add('active');
+        }
+
+        // Initialize likes functionality
+        function initializeLikes() {
+            // Check if user has liked the current post
+            const hasLiked = localStorage.getItem('likedCurrentPost');
+            if (hasLiked) {
+                likeBtn.classList.add('liked');
+                likeBtn.innerHTML = '<i class="fas fa-heart"></i> <span id="likeCount">' + likeCount.textContent + '</span> Likes';
+            }
+        }
+
+        // Toggle like on blog post
+        function toggleLike() {
+            const currentLikes = parseInt(likeCount.textContent);
+            const hasLiked = likeBtn.classList.contains('liked');
+            
+            if (hasLiked) {
+                // Unlike
+                likeBtn.classList.remove('liked');
+                likeBtn.innerHTML = '<i class="far fa-heart"></i> <span id="likeCount">' + (currentLikes - 1) + '</span> Likes';
+                localStorage.removeItem('likedCurrentPost');
+            } else {
+                // Like
+                likeBtn.classList.add('liked');
+                likeBtn.innerHTML = '<i class="fas fa-heart"></i> <span id="likeCount">' + (currentLikes + 1) + '</span> Likes';
+                localStorage.setItem('likedCurrentPost', 'true');
+            }
+            
+            // Update like count
+            likeCount.textContent = likeBtn.classList.contains('liked') ? currentLikes + 1 : currentLikes - 1;
+        }
+
+        // Toggle share buttons visibility
+        function toggleShareButtons() {
+            if (socialShare.style.display === 'none') {
+                socialShare.style.display = 'flex';
+            } else {
+                socialShare.style.display = 'none';
+            }
+        }
+
+        // Add comment to blog post
+        function addComment() {
+            const commentText = commentInput.value.trim();
+            
+            if (commentText) {
+                // Create new comment element
+                const commentItem = document.createElement('li');
+                commentItem.className = 'comment-item';
+                commentItem.innerHTML = `
+                    <div class="comment-author">You</div>
+                    <div class="comment-text">${commentText}</div>
+                `;
+                
+                // Add to comment list
+                commentList.prepend(commentItem);
+                
+                // Update comment count
+                const currentComments = parseInt(commentCount.textContent);
+                commentCount.textContent = currentComments + 1;
+                
+                // Clear input
+                commentInput.value = '';
+                
+                // Show confirmation
+                alert('Comment added successfully!');
+            }
+        }
+
+        // Generate blog post based on user input
+        function generateBlogPost() {
+            const prompt = promptInput.value.trim();
+            
+            if (!prompt) {
+                alert('Please enter a topic or description for your blog post.');
+                return;
+            }
+            
+            // Show loading indicator
+            loadingIndicator.style.display = 'block';
+            blogPost.style.display = 'none';
+            
+            // Simulate AI processing delay
+            setTimeout(() => {
+                // Hide loading indicator
+                loadingIndicator.style.display = 'none';
+                
+                // Show blog post
+                blogPost.style.display = 'block';
+                
+                // Generate blog content based on prompt
+                const generatedBlog = generateContentFromPrompt(prompt);
+                displayBlogPost(generatedBlog);
+                
+                // Scroll to generated post
+                blogPost.scrollIntoView({ behavior: 'smooth' });
+                
+                // Clear input
+                promptInput.value = '';
+            }, 2000);
+        }
+
+        // Generate content based on user prompt (simulated)
+        function generateContentFromPrompt(prompt) {
+            // Simple content generation based on keywords in prompt
+            let category = 'technology';
+            let content = [];
+            
+            if (prompt.toLowerCase().includes('travel') || prompt.toLowerCase().includes('vacation')) {
+                category = 'travel';
+                content = [
+                    `Based on your interest in "${prompt}", here's what you need to know about modern travel experiences.`,
+                    'Travel has evolved significantly in recent years, with new trends focusing on authentic experiences and sustainable tourism.',
+                    'Whether you\'re planning a weekend getaway or an extended adventure, there are countless opportunities to explore the world in meaningful ways.',
+                    'From hidden gems to popular destinations, the key to memorable travel is planning and an open mind.',
+                    'Remember to respect local cultures and environments as you explore new places and create lasting memories.'
+                ];
+            } else if (prompt.toLowerCase().includes('health') || prompt.toLowerCase().includes('wellness')) {
+                category = 'health';
+                content = [
+                    `Your query about "${prompt}" touches on important aspects of personal wellness and healthcare.`,
+                    'Maintaining good health requires a balanced approach that includes proper nutrition, regular exercise, and mental wellbeing.',
+                    'Recent advancements in medical science have provided new insights into preventive care and treatment options.',
+                    'It\'s important to consult with healthcare professionals for personalized advice tailored to your specific needs.',
+                    'Remember that small, consistent changes often lead to the most sustainable health improvements over time.'
+                ];
+            } else if (prompt.toLowerCase().includes('food') || prompt.toLowerCase().includes('cooking')) {
+                category = 'food';
+                content = [
+                    `Your interest in "${prompt}" aligns with current culinary trends and nutritional science.`,
+                    'The world of food is constantly evolving, with new cooking techniques and flavor combinations emerging regularly.',
+                    'Nutrition plays a crucial role in overall health, making informed food choices more important than ever.',
+                    'Exploring different cuisines can expand your palate and provide cultural insights through culinary experiences.',
+                    'Whether you\'re a novice cook or an experienced chef, there\'s always something new to discover in the kitchen.'
+                ];
+            } else if (prompt.toLowerCase().includes('science') || prompt.toLowerCase().includes('research')) {
+                category = 'science';
+                content = [
+                    `Your curiosity about "${prompt}" reflects the importance of scientific inquiry in our modern world.`,
+                    'Scientific advancements continue to shape our understanding of the universe and improve quality of life.',
+                    'From space exploration to microscopic organisms, research expands human knowledge across all disciplines.',
+                    'The scientific method provides a framework for testing hypotheses and validating discoveries through evidence.',
+                    'Continued investment in research and education ensures that future generations will benefit from today\'s innovations.'
+                ];
+            } else {
+                // Default technology category
+                content = [
+                    `Based on your prompt about "${prompt}", here are some insights into current technological trends.`,
+                    'Technology continues to evolve at a rapid pace, transforming how we live, work, and communicate.',
+                    'Innovation in this field requires balancing technical capabilities with ethical considerations and user needs.',
+                    'Staying informed about technological developments helps individuals and organizations adapt to changing landscapes.',
+                    'The future promises even more integration of technology into daily life, with potential benefits and challenges to navigate.'
+                ];
+            }
+            
+            return {
+                title: prompt.charAt(0).toUpperCase() + prompt.slice(1),
+                content: content,
+                category: category,
+                views: Math.floor(Math.random() * 500) + 100,
+                likes: Math.floor(Math.random() * 20) + 5,
+                comments: Math.floor(Math.random() * 10) + 1,
+                date: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+            };
+        }
+
+        // Submit contact form
+        function submitContactForm() {
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const subject = document.getElementById('subject').value;
+            const message = document.getElementById('message').value;
+            
+            // Simple validation
+            if (!name || !email || !subject || !message) {
+                alert('Please fill in all fields.');
+                return;
+            }
+            
+            // Simulate form submission
+            alert(`Thank you, ${name}! Your message has been sent. We'll get back to you at ${email} soon.`);
+            
+            // Reset form
+            contactForm.reset();
+        }
+
+        // Add image error handling
+        function addImageErrorHandling() {
+            document.querySelectorAll('img').forEach(img => {
+                img.onerror = function() {
+                    this.src = 'https://via.placeholder.com/300x180/4361ee/ffffff?text=Blog+Image';
+                };
+            });
+        }
+    </script>
+</body>
+</html>
